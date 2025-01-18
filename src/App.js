@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { authEndpoint, clientId, redirectUri, scopes } from './config';
 import axios from 'axios';
+import BlobComponent from './BlobComponent';
 import './App.css';
 
 const hash = window.location.hash
@@ -180,53 +181,66 @@ function App() {
                 </a>
             )}
             {token && (
-                <div>
-                    <h1>Spotify Player</h1>
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search for a song"
-                    />
-                    <button onClick={searchTracks}>Search</button>
-                    <ul>
-                        {tracks.map(track => (
-                            <li key={track.id}>
-                                {track.name} by {track.artists.map(artist => artist.name).join(', ')}
-                                <button onClick={() => {
-                                    playTrack(track.uri, track);
-                                    fetchTrackFeatures(track.id, track.artists[0].id);
-                                }}>Play</button>
-                            </li>
-                        ))}
-                    </ul>
-                    <button onClick={togglePlayPause}>
-                        {isPlaying ? 'Pause' : 'Play'}
-                    </button>
-                    <div>
-                        <h2>Available Devices</h2>
-                        <button onClick={fetchDevices}>Refresh Devices</button>
+                <div style={{ display: 'flex' }}>
+                    <div style={{ flex: 1 }}>
+                        <h1>Spotify Player</h1>
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search for a song"
+                        />
+                        <button onClick={searchTracks}>Search</button>
                         <ul>
-                            {devices.map(device => (
-                                <li key={device.id}>
-                                    {device.name} {device.id === selectedDevice && "(Current)"}
-                                    <button onClick={() => transferPlayback(device.id)}>Select</button>
+                            {tracks.map(track => (
+                                <li key={track.id}>
+                                    {track.name} by {track.artists.map(artist => artist.name).join(', ')}
+                                    <button onClick={() => {
+                                        playTrack(track.uri, track);
+                                        fetchTrackFeatures(track.id, track.artists[0].id);
+                                    }}>Play</button>
                                 </li>
                             ))}
                         </ul>
-                    </div>
-                    {selectedTrackFeatures && (
+                        <button onClick={togglePlayPause}>
+                            {isPlaying ? 'Pause' : 'Play'}
+                        </button>
                         <div>
-                            <h2>Track Features</h2>
-                            <p>Tempo: {selectedTrackFeatures.tempo} BPM</p>
-                            <p>Key: {selectedTrackFeatures.key}</p>
-                            <p>Mode: {selectedTrackFeatures.mode === 1 ? 'Major' : 'Minor'}</p>
-                            <p>Danceability: {selectedTrackFeatures.danceability}</p>
-                            <p>Energy: {selectedTrackFeatures.energy}</p>
-                            <p>Valence: {selectedTrackFeatures.valence}</p>
-                            <p>Genre: {selectedTrackGenre}</p>
+                            <h2>Available Devices</h2>
+                            <button onClick={fetchDevices}>Refresh Devices</button>
+                            <ul>
+                                {devices.map(device => (
+                                    <li key={device.id}>
+                                        {device.name} {device.id === selectedDevice && "(Current)"}
+                                        <button onClick={() => transferPlayback(device.id)}>Select</button>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
-                    )}
+                        {selectedTrackFeatures && (
+                            <div>
+                                <h2>Track Features</h2>
+                                <p>Tempo: {selectedTrackFeatures.tempo} BPM</p>
+                                <p>Key: {selectedTrackFeatures.key}</p>
+                                <p>Mode: {selectedTrackFeatures.mode === 1 ? 'Major' : 'Minor'}</p>
+                                <p>Danceability: {selectedTrackFeatures.danceability}</p>
+                                <p>Energy: {selectedTrackFeatures.energy}</p>
+                                <p>Valence: {selectedTrackFeatures.valence}</p>
+                                <p>Genre: {selectedTrackGenre}</p>
+                            </div>
+                        )}
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <BlobComponent 
+                            width={400} 
+                            height={400}
+                            blobConfig={{
+                                color: '#1DB954', // Spotify green
+                                radius: 100,
+                                numPoints: 40
+                            }}
+                        />
+                    </div>
                 </div>
             )}
         </div>
