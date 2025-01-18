@@ -3,11 +3,16 @@
    export const clientId = "5cfe2dc04e3a4f71a3ac0668fe002b87"; // Replace with your Client ID
    export const redirectUri = "http://localhost:3000/callback";
    export const scopes = [
-       "streaming",
-       "user-read-email",
-       "user-read-private",
-       "user-library-read",
-       "user-library-modify",
-       "user-read-playback-state",
-       "user-modify-playback-state"
-   ];
+    "streaming",
+    "user-read-email",
+    "user-read-private",
+    "user-library-read",
+    "user-library-modify",
+    "user-read-playback-state",
+    "user-modify-playback-state",
+    "user-read-currently-playing",
+    "user-read-recently-played",
+    "user-top-read",
+    "playlist-read-private",
+    "playlist-read-collaborative"
+];

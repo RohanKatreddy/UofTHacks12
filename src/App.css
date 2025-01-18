@@ -6,14 +6,14 @@ body {
     padding: 0;
     display: flex;
     justify-content: center;
-    align-items: center;
-    height: 100vh;
+    align-items: flex-start;
+    min-height: 100vh;
 }
 
 .App {
     text-align: center;
     max-width: 600px;
-    margin: auto;
+    margin: 20px auto;
     padding: 20px;
     background-color: #1e1e1e;
     border-radius: 10px;
@@ -75,4 +75,21 @@ h2 {
 
 p {
     margin: 5px 0;
+}
+
+.track-features {
+    background-color: #333;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+    text-align: left;
+}
+
+.track-features p {
+    margin: 5px 0;
+    color: #ccc;
+}
+
+.track-features strong {
+    color: #fff;
 }

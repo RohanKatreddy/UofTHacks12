@@ -20,8 +20,7 @@ function App() {
     const [isPlaying, setIsPlaying] = useState(false);
     const [devices, setDevices] = useState([]);
     const [selectedDevice, setSelectedDevice] = useState(null);
-    const [selectedTrackFeatures, setSelectedTrackFeatures] = useState(null);
-    const [selectedTrackGenre, setSelectedTrackGenre] = useState(null);
+    const [acousticBrainzData, setAcousticBrainzData] = useState(null);
 
     useEffect(() => {
         let _token = hash.access_token;
@@ -88,22 +87,52 @@ function App() {
         }
     };
 
-    const playTrack = (trackUri, track) => {
-        if (!player) return;
-        console.log('Playing Track:', track);
-        player._options.getOAuthToken(access_token => {
-            fetch(`https://api.spotify.com/v1/me/player/play`, {
-                method: 'PUT',
-                body: JSON.stringify({ uris: [trackUri] }),
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${access_token}`
-                },
-            }).then(response => {
-                if (!response.ok) {
-                    console.error('Error playing track:', response.statusText);
+    const fetchMBIDs = async (trackName, artistName) => {
+        try {
+            const response = await axios.get('https://musicbrainz.org/ws/2/recording/', {
+                params: {
+                    query: `${trackName} AND artist:${artistName}`,
+                    fmt: 'json'
                 }
             });
+            const recordings = response.data.recordings;
+            if (recordings && recordings.length > 0) {
+                const mbids = recordings.map(recording => recording.id);
+                console.log(`MBIDs for ${trackName} by ${artistName}:`, mbids);
+                return mbids; // Return all MBIDs found
+            }
+        } catch (error) {
+            console.error('Error fetching MBIDs:', error);
+        }
+        return [];
+    };
+
+    const playTrack = async (trackUri, track) => {
+        if (!player) return;
+        console.log('Playing Track:', track);
+        player._options.getOAuthToken(async access_token => {
+            try {
+                const response = await fetch(`https://api.spotify.com/v1/me/player/play`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ uris: [trackUri] }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${access_token}`
+                    },
+                });
+                if (!response.ok) {
+                    console.error('Error playing track:', response.statusText);
+                } else {
+                    const mbids = await fetchMBIDs(track.name, track.artists[0].name);
+                    if (mbids.length > 0) {
+                        fetchAcousticBrainzData(mbids);
+                    } else {
+                        console.log('No MBIDs found for track:', track.name);
+                    }
+                }
+            } catch (error) {
+                console.error('Error during playback or MBID fetch:', error);
+            }
         });
     };
 
@@ -143,29 +172,31 @@ function App() {
         });
     };
 
-    const fetchTrackFeatures = async (trackId, artistId) => {
-        try {
-            const [featuresResponse, artistResponse] = await Promise.all([
-                axios.get(`https://api.spotify.com/v1/audio-features/${trackId}`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }),
-                axios.get(`https://api.spotify.com/v1/artists/${artistId}`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                })
-            ]);
-
-            console.log('Track Features:', featuresResponse.data);
-            console.log('Artist Info:', artistResponse.data);
-
-            setSelectedTrackFeatures(featuresResponse.data);
-            setSelectedTrackGenre(artistResponse.data.genres.join(', '));
-        } catch (error) {
-            console.error('Error fetching track features or artist info:', error);
+    const fetchAcousticBrainzData = async (mbids) => {
+        for (const mbid of mbids) {
+            try {
+                const response = await axios.get(`http://localhost:8080/https://acousticbrainz.org/api/v1/${mbid}/low-level`);
+                const data = response.data;
+                console.log(`Track Name in AcousticBrainz: ${data.metadata?.tags?.title?.[0] || 'Unknown'}`);
+                const features = {
+                    danceability: data.rhythm?.danceability || 'N/A',
+                    mood: data.mood?.mood || 'N/A',
+                    emotion: data.mood?.emotion || 'N/A',
+                    tonality: data.tonality || 'N/A',
+                    bpm: data.rhythm?.bpm || 'N/A'
+                };
+                console.log('AcousticBrainz Features:', features);
+                setAcousticBrainzData(features);
+                return; // Exit once successful
+            } catch (error) {
+                if (error.response && error.response.status === 404) {
+                    console.error(`No data found for MBID ${mbid} in AcousticBrainz.`);
+                } else {
+                    console.error('Error fetching AcousticBrainz data:', error);
+                }
+            }
         }
+        console.error('No valid MBID found in AcousticBrainz.');
     };
 
     return (
@@ -193,10 +224,7 @@ function App() {
                         {tracks.map(track => (
                             <li key={track.id}>
                                 {track.name} by {track.artists.map(artist => artist.name).join(', ')}
-                                <button onClick={() => {
-                                    playTrack(track.uri, track);
-                                    fetchTrackFeatures(track.id, track.artists[0].id);
-                                }}>Play</button>
+                                <button onClick={() => playTrack(track.uri, track)}>Play</button>
                             </li>
                         ))}
                     </ul>
@@ -215,16 +243,14 @@ function App() {
                             ))}
                         </ul>
                     </div>
-                    {selectedTrackFeatures && (
-                        <div>
-                            <h2>Track Features</h2>
-                            <p>Tempo: {selectedTrackFeatures.tempo} BPM</p>
-                            <p>Key: {selectedTrackFeatures.key}</p>
-                            <p>Mode: {selectedTrackFeatures.mode === 1 ? 'Major' : 'Minor'}</p>
-                            <p>Danceability: {selectedTrackFeatures.danceability}</p>
-                            <p>Energy: {selectedTrackFeatures.energy}</p>
-                            <p>Valence: {selectedTrackFeatures.valence}</p>
-                            <p>Genre: {selectedTrackGenre}</p>
+                    {acousticBrainzData && (
+                        <div className="acoustic-brainz-data">
+                            <h2>AcousticBrainz Features</h2>
+                            <p><strong>Danceability:</strong> {acousticBrainzData.danceability}</p>
+                            <p><strong>Mood:</strong> {acousticBrainzData.mood}</p>
+                            <p><strong>Emotion:</strong> {acousticBrainzData.emotion}</p>
+                            <p><strong>Tonality:</strong> {acousticBrainzData.tonality}</p>
+                            <p><strong>BPM:</strong> {acousticBrainzData.bpm}</p>
                         </div>
                     )}
                 </div>
