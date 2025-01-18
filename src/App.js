@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { authEndpoint, clientId, redirectUri, scopes } from './config';
 import axios from 'axios';
 import './App.css';
@@ -14,6 +14,15 @@ const hash = window.location.hash
 
 // Utility function to create a delay
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Debounce function
+const debounce = (func, wait) => {
+    let timeout;
+    return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+    };
+};
 
 function App() {
     const [token, setToken] = useState(null);
@@ -71,15 +80,15 @@ function App() {
         };
     }, [token]);
 
-    const searchTracks = async () => {
-        if (!searchQuery) return;
+    const searchTracks = async (query) => {
+        if (!query) return;
         try {
             const { data } = await axios.get(`https://api.spotify.com/v1/search`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 },
                 params: {
-                    q: searchQuery,
+                    q: query,
                     type: 'track'
                 }
             });
@@ -88,6 +97,13 @@ function App() {
         } catch (error) {
             console.error('Error searching tracks:', error);
         }
+    };
+
+    const debouncedSearchTracks = useCallback(debounce(searchTracks, 500), [token]);
+
+    const handleSearchChange = (e) => {
+        setSearchQuery(e.target.value);
+        debouncedSearchTracks(e.target.value);
     };
 
     const fetchMBIDs = async (trackName, artistName) => {
@@ -231,10 +247,9 @@ function App() {
                     <input
                         type="text"
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={handleSearchChange}
                         placeholder="Search for a song"
                     />
-                    <button onClick={searchTracks}>Search</button>
                     <ul>
                         {tracks.map(track => (
                             <li key={track.id}>
