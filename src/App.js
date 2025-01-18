@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { authEndpoint, clientId, redirectUri, scopes } from './config';
 import axios from 'axios';
+import BlobComponent from './BlobComponent';
 import './App.css';
 
 const hash = window.location.hash
@@ -211,39 +212,43 @@ function App() {
                 </a>
             )}
             {token && (
-                <div>
-                    <h1>Spotify Player</h1>
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search for a song"
-                    />
-                    <button onClick={searchTracks}>Search</button>
-                    <ul>
-                        {tracks.map(track => (
-                            <li key={track.id}>
-                                {track.name} by {track.artists.map(artist => artist.name).join(', ')}
-                                <button onClick={() => playTrack(track.uri, track)}>Play</button>
-                            </li>
-                        ))}
-                    </ul>
-                    <button onClick={togglePlayPause}>
-                        {isPlaying ? 'Pause' : 'Play'}
-                    </button>
-                    <div>
-                        <h2>Available Devices</h2>
-                        <button onClick={fetchDevices}>Refresh Devices</button>
+                <div style={{ display: 'flex' }}>
+                    <div style={{ flex: 1 }}>
+                        <h1>Spotify Player</h1>
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search for a song"
+                        />
+                        <button onClick={searchTracks}>Search</button>
                         <ul>
-                            {devices.map(device => (
-                                <li key={device.id}>
-                                    {device.name} {device.id === selectedDevice && "(Current)"}
-                                    <button onClick={() => transferPlayback(device.id)}>Select</button>
+                            {tracks.map(track => (
+                                <li key={track.id}>
+                                    {track.name} by {track.artists.map(artist => artist.name).join(', ')}
+                                    <button onClick={() => {
+                                        playTrack(track.uri, track);
+                                        fetchTrackFeatures(track.id, track.artists[0].id);
+                                    }}>Play</button>
                                 </li>
                             ))}
                         </ul>
-                    </div>
-                    {acousticBrainzData && (
+                        <button onClick={togglePlayPause}>
+                            {isPlaying ? 'Pause' : 'Play'}
+                        </button>
+                        <div>
+                            <h2>Available Devices</h2>
+                            <button onClick={fetchDevices}>Refresh Devices</button>
+                            <ul>
+                                {devices.map(device => (
+                                    <li key={device.id}>
+                                        {device.name} {device.id === selectedDevice && "(Current)"}
+                                        <button onClick={() => transferPlayback(device.id)}>Select</button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        {acousticBrainzData && (
                         <div className="acoustic-brainz-data">
                             <h2>AcousticBrainz Features</h2>
                             <p><strong>Danceability:</strong> {acousticBrainzData.danceability}</p>
@@ -253,6 +258,19 @@ function App() {
                             <p><strong>BPM:</strong> {acousticBrainzData.bpm}</p>
                         </div>
                     )}
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <BlobComponent 
+                            width={400} 
+                            height={400}
+                            shape={['round', 'oval', 'wavy', 'squish'][Math.floor(Math.random() * 4)]}
+                            colorPreset={['spotify', 'sunset', 'ocean', 'purple', 'fire'][Math.floor(Math.random() * 5)]}
+                            blobConfig={{
+                                radius: 100,
+                                numPoints: 40
+                            }}
+                        />
+                    </div>
                 </div>
             )}
         </div>
