@@ -226,10 +226,7 @@ function App() {
                             {tracks.map(track => (
                                 <li key={track.id}>
                                     {track.name} by {track.artists.map(artist => artist.name).join(', ')}
-                                    <button onClick={() => {
-                                        playTrack(track.uri, track);
-                                        fetchTrackFeatures(track.id, track.artists[0].id);
-                                    }}>Play</button>
+                                    <button onClick={() => playTrack(track.uri, track)}>Play</button>
                                 </li>
                             ))}
                         </ul>
