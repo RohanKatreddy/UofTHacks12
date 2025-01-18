@@ -4,7 +4,7 @@ class Blob {
     constructor(options = {}) {
         this.center = options.center || { x: 0, y: 0 };
         this.radius = options.radius || 100;
-        this.color = options.color || '#000000';
+        this.colors = options.colors || ['#000000'];
         this.time = 0;
         this.noiseScale = options.noiseScale || 0.005;
         this.noiseStrength = options.noiseStrength || 20;
@@ -12,46 +12,41 @@ class Blob {
         this.edgeSoftness = options.edgeSoftness || 30;
         this.pulseSpeed = options.pulseSpeed || 0.02;
         this.pulseStrength = options.pulseStrength || 15;
-        this.offset = options.offset || { x: 0, y: 0 };
-        this.timeOffset = options.timeOffset || 0;
         this.shape = options.shape || 'round';
-        this.movementRadius = options.movementRadius || 0;
-        this.movementSpeed = options.movementSpeed || 0.01;
     }
 
     update() {
         this.time += this.pulseSpeed;
-        // Update position in circular motion
-        if (this.movementRadius > 0) {
-            this.offset.x = Math.cos(this.time * this.movementSpeed) * this.movementRadius;
-            this.offset.y = Math.sin(this.time * this.movementSpeed) * this.movementRadius;
-        }
     }
 
     draw(ctx) {
+        ctx.beginPath();
+
+        // Create gradient with multiple color stops
         const gradient = ctx.createRadialGradient(
-            this.center.x + this.offset.x, 
-            this.center.y + this.offset.y, 
+            this.center.x,
+            this.center.y,
             0,
-            this.center.x + this.offset.x, 
-            this.center.y + this.offset.y, 
+            this.center.x,
+            this.center.y,
             this.radius * 1.5
         );
 
-        const rgbaColor = this.color.match(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)[1];
-        const r = parseInt(rgbaColor.substring(0, 2), 16);
-        const g = parseInt(rgbaColor.substring(2, 4), 16);
-        const b = parseInt(rgbaColor.substring(4, 6), 16);
+        // Add each color as a gradient stop
+        this.colors.forEach((color, index) => {
+            const rgbaColor = color.match(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)[1];
+            const r = parseInt(rgbaColor.substring(0, 2), 16);
+            const g = parseInt(rgbaColor.substring(2, 4), 16);
+            const b = parseInt(rgbaColor.substring(4, 6), 16);
+            
+            const position = index / (this.colors.length - 1);
+            gradient.addColorStop(position, `rgba(${r}, ${g}, ${b}, 0.4)`);
+        });
 
-        gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.6)`);
-        gradient.addColorStop(0.3, `rgba(${r}, ${g}, ${b}, 0.4)`);
-        gradient.addColorStop(0.6, `rgba(${r}, ${g}, ${b}, 0.2)`);
-        gradient.addColorStop(0.8, `rgba(${r}, ${g}, ${b}, 0.1)`);
-        gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+        // Add final transparent stop
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
-        ctx.beginPath();
-
-        const breathingEffect = Math.sin(this.time + this.timeOffset) * this.pulseStrength;
+        const breathingEffect = Math.sin(this.time) * this.pulseStrength;
 
         const shapes = {
             round: (angle) => ({ 
@@ -88,8 +83,8 @@ class Blob {
             const totalVariation = edgeVariation + breathingVariation + organicNoise;
             const shape = getShape(angle);
 
-            const x = this.center.x + this.offset.x + shape.x * (this.radius + totalVariation);
-            const y = this.center.y + this.offset.y + shape.y * (this.radius + totalVariation);
+            const x = this.center.x + shape.x * (this.radius + totalVariation);
+            const y = this.center.y + shape.y * (this.radius + totalVariation);
 
             if (angle === 0) {
                 ctx.moveTo(x, y);
@@ -101,72 +96,56 @@ class Blob {
         ctx.closePath();
         ctx.fillStyle = gradient;
         ctx.filter = `blur(${this.edgeSoftness * 0.2}px)`;
+        ctx.globalCompositeOperation = 'lighter';
         ctx.fill();
         ctx.filter = 'none';
+        ctx.globalCompositeOperation = 'source-over';
     }
 }
 
-const BlobComponent = ({ width = 400, height = 400, blobConfig = {} }) => {
+const colorPresets = {
+    spotify: ['#1DB954', '#4287f5', '#42f5a7'],
+    sunset: ['#FF4B1F', '#FF9068', '#FFC371'],
+    ocean: ['#2E3192', '#1BFFFF', '#4287f5'],
+    purple: ['#8E2DE2', '#4A00E0', '#6A35D4'],
+    fire: ['#FF0000', '#FFA500', '#FFD700']
+};
+
+const BlobComponent = ({ 
+    width = 400, 
+    height = 400, 
+    blobConfig = {},
+    colorPreset = 'spotify',
+    shape = 'round'
+}) => {
     const canvasRef = useRef(null);
-    const blobsRef = useRef([]);
+    const blobRef = useRef(null);
     const animationFrameRef = useRef(null);
 
     useEffect(() => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
 
-        // Create multiple overlapping blobs with different colors, shapes and slight offsets
-        const subBlobs = [
-            {
-                color: blobConfig.color || '#FF0000',
-                offset: { x: 0, y: 0 },
-                timeOffset: 0,
-                shape: 'round',
-                movementRadius: 20,
-                movementSpeed: 0.5
-            },
-            {
-                color: '#4287f5',
-                offset: { x: -20, y: 20 },
-                timeOffset: Math.PI / 3,
-                shape: 'oval',
-                movementRadius: 30,
-                movementSpeed: 0.7
-            },
-            {
-                color: '#42f5a7',
-                offset: { x: 20, y: -20 },
-                timeOffset: Math.PI / 1.5,
-                shape: 'wavy',
-                movementRadius: 25,
-                movementSpeed: 0.3
-            }
-        ];
+        const colors = blobConfig.colors || colorPresets[colorPreset] || colorPresets.spotify;
 
-        blobsRef.current = subBlobs.map(subBlob => new Blob({
+        blobRef.current = new Blob({
             center: { x: width/2, y: height/2 },
             radius: 50,
+            colors,
             noiseScale: 0.005,
             noiseStrength: 10,
             edgeNoiseStrength: 5,
             edgeSoftness: 30,
             pulseSpeed: 0.02,
             pulseStrength: 15,
-            ...blobConfig,
-            color: subBlob.color,
-            offset: subBlob.offset,
-            timeOffset: subBlob.timeOffset,
-            shape: subBlob.shape,
-            movementRadius: subBlob.movementRadius,
-            movementSpeed: subBlob.movementSpeed
-        }));
+            shape,
+            ...blobConfig
+        });
 
         const animate = () => {
             ctx.clearRect(0, 0, width, height);
-            blobsRef.current.forEach(blob => {
-                blob.update();
-                blob.draw(ctx);
-            });
+            blobRef.current.update();
+            blobRef.current.draw(ctx);
             animationFrameRef.current = requestAnimationFrame(animate);
         };
 
@@ -177,7 +156,7 @@ const BlobComponent = ({ width = 400, height = 400, blobConfig = {} }) => {
                 cancelAnimationFrame(animationFrameRef.current);
             }
         };
-    }, [width, height, blobConfig]);
+    }, [width, height, blobConfig, colorPreset, shape]);
 
     return (
         <canvas

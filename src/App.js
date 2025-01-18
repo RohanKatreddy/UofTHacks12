@@ -234,8 +234,9 @@ function App() {
                         <BlobComponent 
                             width={400} 
                             height={400}
+                            shape={['round', 'oval', 'wavy', 'squish'][Math.floor(Math.random() * 4)]}
+                            colorPreset={['spotify', 'sunset', 'ocean', 'purple', 'fire'][Math.floor(Math.random() * 5)]}
                             blobConfig={{
-                                color: '#1DB954', // Spotify green
                                 radius: 100,
                                 numPoints: 40
                             }}
