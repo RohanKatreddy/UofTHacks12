@@ -1,0 +1,38 @@
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background-image: url('background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-button {
+    transform: translateY(150px);
+}
+
+.login-button button {
+    background-color: black;
+    cursor: pointer;
+    color: white;
+    font-size: 35px;
+    border: none;
+    border-radius: 30px;
+    padding: 10px 90px;
+    font-family: 'Homenaje', sans-serif;
+    transition: all 0.3s ease;
+    box-shadow: none;
+}
+
+.login-button button:hover {
+    background: linear-gradient(to right, #78b5f7, #f4c0d8);
+}
+
+.login-button button:active {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    transform: translateY(2px);
+}
