@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { colorPresets } from './BlobComponent';
 import { authEndpoint, clientId, redirectUri, scopes } from './config';
 import axios from 'axios';
@@ -27,32 +27,7 @@ const debounce = (func, wait) => {
     };
 };
 
-function BlobPage() {
-    const randomizeBlob = () => {
-        const shapes = ['round', 'oval', 'wavy', 'squish', 'star', 'flower', 'bubble', 'cloud', 'droplet'];
-        const presetColors = Object.values(colorPresets);
-        const randomColors = Array(3).fill(0).map(() => presetColors[Math.floor(Math.random() * presetColors.length)]);
-        
-        return {
-            shape: shapes[Math.floor(Math.random() * shapes.length)],
-            blobConfig: {
-                colors: randomColors,
-                noiseStrength: Math.random() * 20,
-                edgeNoiseStrength: Math.random() * 10,
-                pulseSpeed: Math.random() * 0.05,
-                pulseStrength: Math.random() * 20,
-                radius: 30 + Math.random() * 40,
-                edgeSoftness: 20 + Math.random() * 40,
-                noiseOffsets: Array(36).fill(0).map(() => ({
-                    x: Math.random() * 1000,
-                    y: Math.random() * 1000
-                }))
-            }
-        };
-    };
-
-    const [blobProps, setBlobProps] = useState(randomizeBlob());
-
+function BlobPage({ blobProps }) {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
             <BlobComponent 
@@ -60,12 +35,6 @@ function BlobPage() {
                 colorPreset={blobProps.colorPreset}
                 blobConfig={blobProps.blobConfig}
             />
-            <button 
-                onClick={() => setBlobProps(randomizeBlob())}
-                style={{ marginTop: '20px' }}
-            >
-                Randomize Blob
-            </button>
         </div>
     );
 }
@@ -117,6 +86,29 @@ function SpotifyPlayer({ token, searchQuery, tracks, isPlaying, devices, selecte
     );
 }
 
+const randomizeBlob = () => {
+    const shapes = ['round', 'oval', 'wavy', 'squish', 'star', 'flower', 'bubble', 'cloud', 'droplet'];
+    const presetColors = Object.values(colorPresets);
+    const randomColors = Array(3).fill(0).map(() => presetColors[Math.floor(Math.random() * presetColors.length)]);
+    
+    return {
+        shape: shapes[Math.floor(Math.random() * shapes.length)],
+        blobConfig: {
+            colors: randomColors,
+            noiseStrength: Math.random() * 20,
+            edgeNoiseStrength: Math.random() * 10,
+            pulseSpeed: Math.random() * 0.05,
+            pulseStrength: Math.random() * 20,
+            radius: 30 + Math.random() * 40,
+            edgeSoftness: 20 + Math.random() * 40,
+            noiseOffsets: Array(36).fill(0).map(() => ({
+                x: Math.random() * 1000,
+                y: Math.random() * 1000
+            }))
+        }
+    };
+};
+
 function App() {
     const [token, setToken] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -126,6 +118,9 @@ function App() {
     const [devices, setDevices] = useState([]);
     const [selectedDevice, setSelectedDevice] = useState(null);
     const [acousticBrainzData, setAcousticBrainzData] = useState(null);
+    const [blobProps, setBlobProps] = useState(randomizeBlob());
+    const audioContextRef = useRef(null);
+    const analyserRef = useRef(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -151,6 +146,11 @@ function App() {
             player.addListener('player_state_changed', state => {
                 console.log('Player State Changed:', state);
                 setIsPlaying(!state.paused);
+                if (state.paused) {
+                    stopAnalyzingAudio();
+                } else {
+                    startAnalyzingAudio();
+                }
             });
 
             // Ready
@@ -173,6 +173,55 @@ function App() {
             setPlayer(player);
         };
     }, [token]);
+
+    const startAnalyzingAudio = () => {
+        if (!player || !player._options || typeof player._options.getAudioElement !== 'function') {
+            console.error('Player or audio element not ready');
+            return;
+        }
+
+        if (!audioContextRef.current) {
+            audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+            analyserRef.current = audioContextRef.current.createAnalyser();
+            analyserRef.current.fftSize = 256;
+        }
+
+        const audioElement = player._options.getAudioElement();
+        if (!audioElement) {
+            console.error('Audio element not available');
+            return;
+        }
+
+        const source = audioContextRef.current.createMediaElementSource(audioElement);
+        source.connect(analyserRef.current);
+        analyserRef.current.connect(audioContextRef.current.destination);
+
+        const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+
+        const analyze = () => {
+            analyserRef.current.getByteFrequencyData(dataArray);
+            const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+            if (average > 128) { // Simple beat detection threshold
+                setBlobProps(prevProps => ({
+                    ...prevProps,
+                    blobConfig: {
+                        ...prevProps.blobConfig,
+                        pulseStrength: Math.random() * 20 + 20
+                    }
+                }));
+            }
+            requestAnimationFrame(analyze);
+        };
+
+        analyze();
+    };
+
+    const stopAnalyzingAudio = () => {
+        if (audioContextRef.current) {
+            audioContextRef.current.close();
+            audioContextRef.current = null;
+        }
+    };
 
     const searchTracks = async (query) => {
         if (!query) return;
@@ -454,7 +503,7 @@ function App() {
                 )}
             </nav>
             <Routes>
-                <Route path="/blob" element={<BlobPage />} />
+                <Route path="/blob" element={<BlobPage blobProps={blobProps} />} />
                 <Route 
                     path="/" 
                     element={
