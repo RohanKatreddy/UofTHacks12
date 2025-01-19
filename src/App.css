@@ -6,9 +6,9 @@ body {
     padding: 0;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     min-height: 100vh;
-    overflow: hidden;
+    overflow-y: auto;
     position: relative;
 }
 
@@ -59,6 +59,9 @@ input[type="text"] {
 ul {
     list-style-type: none;
     padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    margin: 0;
 }
 
 li {

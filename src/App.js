@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { colorPresets } from './BlobComponent';
 import { authEndpoint, clientId, redirectUri, scopes } from './config';
 import axios from 'axios';
@@ -54,33 +54,12 @@ function BlobPage() {
     const [blobProps, setBlobProps] = useState(randomizeBlob());
 
     return (
-        <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            height: '100vh',
-            backgroundColor: '#ffffff'
-        }}>
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
             <BlobComponent 
                 shape={blobProps.shape}
                 colorPreset={blobProps.colorPreset}
                 blobConfig={blobProps.blobConfig}
             />
-            <button 
-                onClick={() => setBlobProps(randomizeBlob())}
-                style={{ 
-                    marginTop: '20px',
-                    padding: '10px 20px',
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #e0e0e0',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                }}
-            >
-                Randomize Blob
-            </button>
         </div>
     );
 }
@@ -88,117 +67,72 @@ function BlobPage() {
 function SpotifyPlayer({ token, searchQuery, tracks, isPlaying, devices, selectedDevice, acousticBrainzData, 
     handleSearchChange, playTrack, togglePlayPause, fetchDevices, transferPlayback }) {
     return (
-        <div style={{ 
-            padding: '20px',
-            backgroundColor: '#ffffff',
-            borderRadius: '10px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-        }}>
-            <h1 style={{ color: '#333333' }}>Spotify Player</h1>
+        <div>
+            <h1>Spotify Player</h1>
             <input
                 type="text"
                 value={searchQuery}
                 onChange={handleSearchChange}
                 placeholder="Search for a song"
-                style={{
-                    padding: '8px 12px',
-                    border: '1px solid #e0e0e0',
-                    borderRadius: '4px',
-                    width: '100%',
-                    marginBottom: '20px'
-                }}
             />
-            <ul style={{ 
-                listStyle: 'none',
-                padding: 0,
-                margin: '0 0 20px 0'
-            }}>
+            <ul>
                 {tracks.map(track => (
-                    <li key={track.id} style={{
-                        padding: '10px',
-                        borderBottom: '1px solid #f0f0f0',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                    }}>
-                        <span style={{ color: '#444444' }}>
-                            {track.name} by {track.artists.map(artist => artist.name).join(', ')}
-                        </span>
-                        <button onClick={() => playTrack(track.uri, track)} style={{
-                            padding: '6px 12px',
-                            backgroundColor: '#1DB954',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer'
-                        }}>Play</button>
+                    <li key={track.id}>
+                        {track.name} by {track.artists.map(artist => artist.name).join(', ')}
+                        <button onClick={() => playTrack(track.uri, track)}>Play</button>
                     </li>
                 ))}
             </ul>
-            <button onClick={togglePlayPause} style={{
-                padding: '8px 16px',
-                backgroundColor: '#1DB954',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                marginBottom: '20px'
-            }}>
+            <button onClick={togglePlayPause}>
                 {isPlaying ? 'Pause' : 'Play'}
             </button>
             <div>
-                <h2 style={{ color: '#333333' }}>Available Devices</h2>
-                <button onClick={fetchDevices} style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #e0e0e0',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    marginBottom: '10px'
-                }}>Refresh Devices</button>
-                <ul style={{
-                    listStyle: 'none',
-                    padding: 0
-                }}>
+                <h2>Available Devices</h2>
+                <button onClick={fetchDevices}>Refresh Devices</button>
+                <ul>
                     {devices.map(device => (
-                        <li key={device.id} style={{
-                            padding: '10px',
-                            borderBottom: '1px solid #f0f0f0',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
-                        }}>
-                            <span style={{ color: '#444444' }}>
-                                {device.name} {device.id === selectedDevice && "(Current)"}
-                            </span>
-                            <button onClick={() => transferPlayback(device.id)} style={{
-                                padding: '6px 12px',
-                                backgroundColor: '#ffffff',
-                                border: '1px solid #e0e0e0',
-                                borderRadius: '4px',
-                                cursor: 'pointer'
-                            }}>Select</button>
+                        <li key={device.id}>
+                            {device.name} {device.id === selectedDevice && "(Current)"}
+                            <button onClick={() => transferPlayback(device.id)}>Select</button>
                         </li>
                     ))}
                 </ul>
             </div>
             {acousticBrainzData && (
-                <div className="acoustic-brainz-data" style={{
-                    backgroundColor: '#f8f8f8',
-                    padding: '15px',
-                    borderRadius: '8px',
-                    marginTop: '20px'
-                }}>
-                    <h2 style={{ color: '#333333' }}>AcousticBrainz Features</h2>
-                    <p style={{ color: '#444444' }}><strong>Danceability:</strong> {acousticBrainzData.danceability}</p>
-                    <p style={{ color: '#444444' }}><strong>Genre:</strong> {acousticBrainzData.genre}</p>
-                    <p style={{ color: '#444444' }}><strong>Emotion:</strong> {acousticBrainzData.emotion}</p>
-                    <p style={{ color: '#444444' }}><strong>BPM:</strong> {acousticBrainzData.bpm}</p>
+                <div className="acoustic-brainz-data">
+                    <h2>AcousticBrainz Features</h2>
+                    <p><strong>Danceability:</strong> {acousticBrainzData.danceability}</p>
+                    <p><strong>Genre:</strong> {acousticBrainzData.genre}</p>
+                    <p><strong>Emotion:</strong> {acousticBrainzData.emotion}</p>
+                    <p><strong>BPM:</strong> {acousticBrainzData.bpm}</p>
                 </div>
             )}
         </div>
     );
 }
+
+const randomizeBlob = () => {
+    const shapes = ['round', 'oval', 'wavy', 'squish', 'star', 'flower', 'bubble', 'cloud', 'droplet'];
+    const presetColors = Object.values(colorPresets);
+    const randomColors = Array(3).fill(0).map(() => presetColors[Math.floor(Math.random() * presetColors.length)]);
+    
+    return {
+        shape: shapes[Math.floor(Math.random() * shapes.length)],
+        blobConfig: {
+            colors: randomColors,
+            noiseStrength: Math.random() * 20,
+            edgeNoiseStrength: Math.random() * 10,
+            pulseSpeed: Math.random() * 0.05,
+            pulseStrength: Math.random() * 20,
+            radius: 30 + Math.random() * 40,
+            edgeSoftness: 20 + Math.random() * 40,
+            noiseOffsets: Array(36).fill(0).map(() => ({
+                x: Math.random() * 1000,
+                y: Math.random() * 1000
+            }))
+        }
+    };
+};
 
 function App() {
     const [token, setToken] = useState(null);
@@ -209,6 +143,9 @@ function App() {
     const [devices, setDevices] = useState([]);
     const [selectedDevice, setSelectedDevice] = useState(null);
     const [acousticBrainzData, setAcousticBrainzData] = useState(null);
+    const [blobProps, setBlobProps] = useState(randomizeBlob());
+    const audioContextRef = useRef(null);
+    const analyserRef = useRef(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -234,6 +171,11 @@ function App() {
             player.addListener('player_state_changed', state => {
                 console.log('Player State Changed:', state);
                 setIsPlaying(!state.paused);
+                if (state.paused) {
+                    stopAnalyzingAudio();
+                } else {
+                    startAnalyzingAudio();
+                }
             });
 
             // Ready
@@ -256,6 +198,55 @@ function App() {
             setPlayer(player);
         };
     }, [token]);
+
+    const startAnalyzingAudio = () => {
+        if (!player || !player._options || typeof player._options.getAudioElement !== 'function') {
+            console.error('Player or audio element not ready');
+            return;
+        }
+
+        if (!audioContextRef.current) {
+            audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+            analyserRef.current = audioContextRef.current.createAnalyser();
+            analyserRef.current.fftSize = 256;
+        }
+
+        const audioElement = player._options.getAudioElement();
+        if (!audioElement) {
+            console.error('Audio element not available');
+            return;
+        }
+
+        const source = audioContextRef.current.createMediaElementSource(audioElement);
+        source.connect(analyserRef.current);
+        analyserRef.current.connect(audioContextRef.current.destination);
+
+        const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+
+        const analyze = () => {
+            analyserRef.current.getByteFrequencyData(dataArray);
+            const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+            if (average > 128) { // Simple beat detection threshold
+                setBlobProps(prevProps => ({
+                    ...prevProps,
+                    blobConfig: {
+                        ...prevProps.blobConfig,
+                        pulseStrength: Math.random() * 20 + 20
+                    }
+                }));
+            }
+            requestAnimationFrame(analyze);
+        };
+
+        analyze();
+    };
+
+    const stopAnalyzingAudio = () => {
+        if (audioContextRef.current) {
+            audioContextRef.current.close();
+            audioContextRef.current = null;
+        }
+    };
 
     const searchTracks = async (query) => {
         if (!query) return;
@@ -537,7 +528,7 @@ function App() {
                 )}
             </nav>
             <Routes>
-                <Route path="/blob" element={<BlobPage />} />
+                <Route path="/blob" element={<BlobPage blobProps={blobProps} />} />
                 <Route 
                     path="/" 
                     element={
