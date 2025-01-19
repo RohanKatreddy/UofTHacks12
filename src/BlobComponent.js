@@ -36,19 +36,25 @@ class Blob {
 
         // Color movement offsets
         this.colorOffsets = [0, Math.PI * 2/3, Math.PI * 4/3];
+
+        // Controls the overall fluidity of the blob's movement and distortion
+        // determined by danceability
+        this.fluidity = options.fluidity || 1.0;
     }
 
     update() {
-        this.time += this.pulseSpeed;
-        // Update noise offsets
+        // Time increment scaled by fluidity
+        this.time += this.pulseSpeed * this.fluidity;
+        
+        // Update noise offsets - movement speed affected by fluidity
         this.noiseOffsets = this.noiseOffsets.map(offset => ({
-            x: offset.x + 0.01,
-            y: offset.y + 0.01
+            x: offset.x + (0.01 * this.fluidity),
+            y: offset.y + (0.01 * this.fluidity)
         }));
 
-        // Update color movement
+        // Update color movement - also affected by fluidity
         this.colorOffsets = this.colorOffsets.map(offset => 
-            (offset + 0.02) % (Math.PI * 2)
+            (offset + (0.02 * this.fluidity)) % (Math.PI * 2)
         );
     }
 
@@ -114,18 +120,18 @@ class Blob {
 
         const getShape = shapes[this.shape] || shapes.round;
 
-        // Create organic movement using noise
+        // Create organic movement using noise - noise effects scaled by fluidity
         const points = [];
         const numPoints = 36;
         for (let i = 0; i < numPoints; i++) {
             const angle = (i / numPoints) * Math.PI * 2;
             const shape = getShape(angle);
             
-            const noiseX = Math.sin(this.noiseOffsets[i].x) * this.noiseStrength;
-            const noiseY = Math.cos(this.noiseOffsets[i].y) * this.noiseStrength;
+            const noiseX = Math.sin(this.noiseOffsets[i].x) * this.noiseStrength * this.fluidity;
+            const noiseY = Math.cos(this.noiseOffsets[i].y) * this.noiseStrength * this.fluidity;
             
-            const timeOffset = Math.sin(this.time * 2 + angle * 3) * this.edgeNoiseStrength;
-            const randomOffset = (Math.sin(angle * 4 + this.time) + Math.cos(angle * 7 + this.time)) * this.noiseStrength;
+            const timeOffset = Math.sin(this.time * 2 + angle * 3) * this.edgeNoiseStrength * this.fluidity;
+            const randomOffset = (Math.sin(angle * 4 + this.time) + Math.cos(angle * 7 + this.time)) * this.noiseStrength * this.fluidity;
             const breathingOffset = breathingEffect * (1 + Math.sin(angle * 3) * 0.4);
             
             const totalOffsetX = noiseX + timeOffset + randomOffset + breathingOffset;
