@@ -54,7 +54,14 @@ function BlobPage() {
     const [blobProps, setBlobProps] = useState(randomizeBlob());
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            height: '100vh',
+            backgroundColor: '#ffffff'
+        }}>
             <BlobComponent 
                 shape={blobProps.shape}
                 colorPreset={blobProps.colorPreset}
@@ -62,7 +69,15 @@ function BlobPage() {
             />
             <button 
                 onClick={() => setBlobProps(randomizeBlob())}
-                style={{ marginTop: '20px' }}
+                style={{ 
+                    marginTop: '20px',
+                    padding: '10px 20px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }}
             >
                 Randomize Blob
             </button>
@@ -73,44 +88,112 @@ function BlobPage() {
 function SpotifyPlayer({ token, searchQuery, tracks, isPlaying, devices, selectedDevice, acousticBrainzData, 
     handleSearchChange, playTrack, togglePlayPause, fetchDevices, transferPlayback }) {
     return (
-        <div>
-            <h1>Spotify Player</h1>
+        <div style={{ 
+            padding: '20px',
+            backgroundColor: '#ffffff',
+            borderRadius: '10px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        }}>
+            <h1 style={{ color: '#333333' }}>Spotify Player</h1>
             <input
                 type="text"
                 value={searchQuery}
                 onChange={handleSearchChange}
                 placeholder="Search for a song"
+                style={{
+                    padding: '8px 12px',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '4px',
+                    width: '100%',
+                    marginBottom: '20px'
+                }}
             />
-            <ul>
+            <ul style={{ 
+                listStyle: 'none',
+                padding: 0,
+                margin: '0 0 20px 0'
+            }}>
                 {tracks.map(track => (
-                    <li key={track.id}>
-                        {track.name} by {track.artists.map(artist => artist.name).join(', ')}
-                        <button onClick={() => playTrack(track.uri, track)}>Play</button>
+                    <li key={track.id} style={{
+                        padding: '10px',
+                        borderBottom: '1px solid #f0f0f0',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }}>
+                        <span style={{ color: '#444444' }}>
+                            {track.name} by {track.artists.map(artist => artist.name).join(', ')}
+                        </span>
+                        <button onClick={() => playTrack(track.uri, track)} style={{
+                            padding: '6px 12px',
+                            backgroundColor: '#1DB954',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer'
+                        }}>Play</button>
                     </li>
                 ))}
             </ul>
-            <button onClick={togglePlayPause}>
+            <button onClick={togglePlayPause} style={{
+                padding: '8px 16px',
+                backgroundColor: '#1DB954',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                marginBottom: '20px'
+            }}>
                 {isPlaying ? 'Pause' : 'Play'}
             </button>
             <div>
-                <h2>Available Devices</h2>
-                <button onClick={fetchDevices}>Refresh Devices</button>
-                <ul>
+                <h2 style={{ color: '#333333' }}>Available Devices</h2>
+                <button onClick={fetchDevices} style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    marginBottom: '10px'
+                }}>Refresh Devices</button>
+                <ul style={{
+                    listStyle: 'none',
+                    padding: 0
+                }}>
                     {devices.map(device => (
-                        <li key={device.id}>
-                            {device.name} {device.id === selectedDevice && "(Current)"}
-                            <button onClick={() => transferPlayback(device.id)}>Select</button>
+                        <li key={device.id} style={{
+                            padding: '10px',
+                            borderBottom: '1px solid #f0f0f0',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                        }}>
+                            <span style={{ color: '#444444' }}>
+                                {device.name} {device.id === selectedDevice && "(Current)"}
+                            </span>
+                            <button onClick={() => transferPlayback(device.id)} style={{
+                                padding: '6px 12px',
+                                backgroundColor: '#ffffff',
+                                border: '1px solid #e0e0e0',
+                                borderRadius: '4px',
+                                cursor: 'pointer'
+                            }}>Select</button>
                         </li>
                     ))}
                 </ul>
             </div>
             {acousticBrainzData && (
-                <div className="acoustic-brainz-data">
-                    <h2>AcousticBrainz Features</h2>
-                    <p><strong>Danceability:</strong> {acousticBrainzData.danceability}</p>
-                    <p><strong>Genre:</strong> {acousticBrainzData.genre}</p>
-                    <p><strong>Emotion:</strong> {acousticBrainzData.emotion}</p>
-                    <p><strong>BPM:</strong> {acousticBrainzData.bpm}</p>
+                <div className="acoustic-brainz-data" style={{
+                    backgroundColor: '#f8f8f8',
+                    padding: '15px',
+                    borderRadius: '8px',
+                    marginTop: '20px'
+                }}>
+                    <h2 style={{ color: '#333333' }}>AcousticBrainz Features</h2>
+                    <p style={{ color: '#444444' }}><strong>Danceability:</strong> {acousticBrainzData.danceability}</p>
+                    <p style={{ color: '#444444' }}><strong>Genre:</strong> {acousticBrainzData.genre}</p>
+                    <p style={{ color: '#444444' }}><strong>Emotion:</strong> {acousticBrainzData.emotion}</p>
+                    <p style={{ color: '#444444' }}><strong>BPM:</strong> {acousticBrainzData.bpm}</p>
                 </div>
             )}
         </div>

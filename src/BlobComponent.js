@@ -171,19 +171,19 @@ class Blob {
 }
 
 export const colorPresets = {
-    red: '#FF0000',     // Passion, excitement, energy
-    orange: '#FF6200',  // Warmth, enthusiasm, creativity 
-    yellow: '#FFB300',  // Joy, optimism, spontaneity
-    green: '#2E7D32',   // Balance, peace, harmony
-    blue: '#0D47A1',    // Calm, melancholy, sadness
-    purple: '#4A148C',  // Mystery, introspection, creativity
-    white: '#F5F5F5',   // Clarity, simplicity, purity
-    gray: '#424242',    // Ambiguity, neutrality, mystery
+    red: '#FF1744',     // Passion, excitement, energy
+    orange: '#FF9100',  // Warmth, enthusiasm, creativity 
+    yellow: '#FFD600',  // Joy, optimism, spontaneity
+    green: '#00E676',   // Balance, peace, harmony
+    blue: '#2979FF',    // Calm, melancholy, sadness
+    purple: '#AA00FF',  // Mystery, introspection, creativity
+    white: '#FFFFFF',   // Clarity, simplicity, purity
+    gray: '#757575',    // Ambiguity, neutrality, mystery
     black: '#000000',   // Elegance, seriousness, intensity
-    pink: '#C2185B',    // Playfulness, love, gentleness
-    turquoise: '#006064', // Freshness, curiosity, vibrance
-    gold: '#B8860B',    // Luxury, sophistication, triumph
-    rainbow: '#D50000'   // Ecstasy, joy, overwhelming beauty
+    pink: '#F50057',    // Playfulness, love, gentleness
+    turquoise: '#00E5FF', // Freshness, curiosity, vibrance
+    gold: '#FFD700',    // Luxury, sophistication, triumph
+    rainbow: '#FF1744'   // Ecstasy, joy, overwhelming beauty
 };
 
 const BlobComponent = ({ 
