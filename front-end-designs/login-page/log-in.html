@@ -9,7 +9,7 @@
 </head>
 <body class="log-in-page">
   <div class="login-container">
-    <h1 style="text-align: center; color: black; font-family: 'Homenaje', sans-serif; margin-bottom: 20px; margin-top: -10px; font-size: 48px;">InSync</h1>
+    <img src="logo-removebg-preview.png" alt="InSync Logo" style="display: block; margin: 0 auto; margin-bottom: 20px; margin-top: -10px; max-width: 200px;">
     <form class="login-form">
       <div class="form-group">
         <input type="email" id="email" placeholder="Email" required>
@@ -28,5 +28,22 @@
     </form>
   </div>
 </body>
+
 </html>
 
+<script>
+  document.querySelector('.login-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      // Here you would typically validate credentials against a backend
+      // For demo purposes, just checking if fields are not empty
+      if (email && password) {
+          window.location.href = 'mood-board.html';
+      } else {
+          alert('Please fill in all fields');
+      }
+  });
+</script>
