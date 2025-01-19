@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { authEndpoint, clientId, redirectUri, scopes } from './config';
 import axios from 'axios';
 import './App.css';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import BlobComponent from './BlobComponent';
 
 const hash = window.location.hash
     .substring(1)
@@ -23,6 +25,95 @@ const debounce = (func, wait) => {
         timeout = setTimeout(() => func(...args), wait);
     };
 };
+
+function BlobPage() {
+    const randomizeBlob = () => {
+        const shapes = ['round', 'oval', 'wavy', 'squish', 'star', 'flower', 'bubble', 'cloud', 'droplet'];
+        const presets = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'white', 'gray', 'black', 'pink', 'turquoise', 'gold', 'rainbow'];
+        
+        return {
+            shape: shapes[Math.floor(Math.random() * shapes.length)],
+            colorPreset: presets[Math.floor(Math.random() * presets.length)],
+            blobConfig: {
+                noiseStrength: Math.random() * 20,
+                edgeNoiseStrength: Math.random() * 10,
+                pulseSpeed: Math.random() * 0.05,
+                pulseStrength: Math.random() * 20,
+                radius: 30 + Math.random() * 40,
+                edgeSoftness: 20 + Math.random() * 40,
+                noiseOffsets: Array(36).fill(0).map(() => ({
+                    x: Math.random() * 1000,
+                    y: Math.random() * 1000
+                }))
+            }
+        };
+    };
+
+    const [blobProps, setBlobProps] = useState(randomizeBlob());
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+            <BlobComponent 
+                shape={blobProps.shape}
+                colorPreset={blobProps.colorPreset}
+                blobConfig={blobProps.blobConfig}
+            />
+            <button 
+                onClick={() => setBlobProps(randomizeBlob())}
+                style={{ marginTop: '20px' }}
+            >
+                Randomize Blob
+            </button>
+        </div>
+    );
+}
+
+function SpotifyPlayer({ token, searchQuery, tracks, isPlaying, devices, selectedDevice, acousticBrainzData, 
+    handleSearchChange, playTrack, togglePlayPause, fetchDevices, transferPlayback }) {
+    return (
+        <div>
+            <h1>Spotify Player</h1>
+            <input
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                placeholder="Search for a song"
+            />
+            <ul>
+                {tracks.map(track => (
+                    <li key={track.id}>
+                        {track.name} by {track.artists.map(artist => artist.name).join(', ')}
+                        <button onClick={() => playTrack(track.uri, track)}>Play</button>
+                    </li>
+                ))}
+            </ul>
+            <button onClick={togglePlayPause}>
+                {isPlaying ? 'Pause' : 'Play'}
+            </button>
+            <div>
+                <h2>Available Devices</h2>
+                <button onClick={fetchDevices}>Refresh Devices</button>
+                <ul>
+                    {devices.map(device => (
+                        <li key={device.id}>
+                            {device.name} {device.id === selectedDevice && "(Current)"}
+                            <button onClick={() => transferPlayback(device.id)}>Select</button>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            {acousticBrainzData && (
+                <div className="acoustic-brainz-data">
+                    <h2>AcousticBrainz Features</h2>
+                    <p><strong>Danceability:</strong> {acousticBrainzData.danceability}</p>
+                    <p><strong>Genre:</strong> {acousticBrainzData.genre}</p>
+                    <p><strong>Emotion:</strong> {acousticBrainzData.emotion}</p>
+                    <p><strong>BPM:</strong> {acousticBrainzData.bpm}</p>
+                </div>
+            )}
+        </div>
+    );
+}
 
 function App() {
     const [token, setToken] = useState(null);
@@ -211,7 +302,17 @@ function App() {
                     danceability: lowLevelData.rhythm?.danceability || 'N/A',
                     genre: highLevelData.highlevel?.genre_dortmund?.value || 'N/A',
                     emotion: highLevelData.highlevel?.mood_happy?.value || 'N/A',
-                    bpm: lowLevelData.rhythm?.bpm || 'N/A'
+                    bpm: lowLevelData.rhythm?.bpm || 'N/A',
+                    mood: getMoodColors(highLevelData)
+                    // the return value looks like:
+                    /*[
+                        { color: "Blue", weight: 2.5 },
+                        { color: "Purple", weight: 1.8 },
+                        { color: "Gray", weight: 1.2 },
+                        { color: "Black", weight: 0.8 },
+                        { color: "White", weight: 0.5 }
+                    ]
+                    */
                 };
                 console.log('AcousticBrainz Features:', features);
                 setAcousticBrainzData(features);
@@ -230,61 +331,151 @@ function App() {
         console.error('No valid MBID found in AcousticBrainz.');
     };
 
+    const getMoodColors = (acousticBrainzData) => {
+        // Create scoring system for each color based on different moods and attributes
+        const colorScores = {
+            Red: 0,      // Energy, aggression
+            Orange: 0,   // Warmth, creativity
+            Yellow: 0,   // Joy, optimism
+            Green: 0,    // Peace, harmony
+            Blue: 0,     // Calm, melancholy
+            Purple: 0,   // Mystery, introspection
+            White: 0,    // Clarity, simplicity
+            Gray: 0,     // Neutrality, ambiguity
+            Black: 0,    // Intensity, seriousness
+            Pink: 0,     // Playfulness
+            Turquoise: 0,// Freshness, curiosity
+            Gold: 0      // Sophistication
+        };
+
+        const hl = acousticBrainzData.highlevel || {};
+
+        // Score colors based on moods
+        if (hl.mood_happy?.all?.happy) {
+            colorScores.Yellow += hl.mood_happy.all.happy * 2;
+            colorScores.Orange += hl.mood_happy.all.happy;
+            colorScores.Pink += hl.mood_happy.all.happy * 0.5;
+        }
+
+        if (hl.mood_sad?.all?.sad) {
+            colorScores.Blue += hl.mood_sad.all.sad * 2;
+            colorScores.Gray += hl.mood_sad.all.sad;
+            colorScores.Purple += hl.mood_sad.all.sad * 0.5;
+        }
+
+        if (hl.mood_aggressive?.all?.aggressive) {
+            colorScores.Red += hl.mood_aggressive.all.aggressive * 2;
+            colorScores.Black += hl.mood_aggressive.all.aggressive;
+            colorScores.Orange += hl.mood_aggressive.all.aggressive * 0.5;
+        }
+
+        if (hl.mood_relaxed?.all?.relaxed) {
+            colorScores.Green += hl.mood_relaxed.all.relaxed * 2;
+            colorScores.Blue += hl.mood_relaxed.all.relaxed;
+            colorScores.White += hl.mood_relaxed.all.relaxed * 0.5;
+        }
+
+        if (hl.mood_electronic?.all?.electronic) {
+            colorScores.Turquoise += hl.mood_electronic.all.electronic * 2;
+            colorScores.Purple += hl.mood_electronic.all.electronic;
+            colorScores.Blue += hl.mood_electronic.all.electronic * 0.5;
+        }
+
+        if (hl.mood_party?.all?.party) {
+            colorScores.Pink += hl.mood_party.all.party * 2;
+            colorScores.Orange += hl.mood_party.all.party;
+            colorScores.Yellow += hl.mood_party.all.party * 0.5;
+        }
+
+        if (hl.mood_acoustic?.all?.acoustic) {
+            colorScores.Brown += hl.mood_acoustic.all.acoustic;
+            colorScores.Green += hl.mood_acoustic.all.acoustic * 0.5;
+        }
+
+        // Add genre influence
+        const genre = hl.genre_dortmund?.value;
+        switch (genre) {
+            case 'classical':
+                colorScores.Gold += 1;
+                colorScores.White += 0.5;
+                break;
+            case 'jazz':
+                colorScores.Purple += 1;
+                colorScores.Blue += 0.5;
+                break;
+            case 'electronic':
+                colorScores.Turquoise += 1;
+                colorScores.Purple += 0.5;
+                break;
+            case 'rock':
+                colorScores.Red += 1;
+                colorScores.Black += 0.5;
+                break;
+        }
+
+        // Add timbre influence
+        if (hl.timbre?.value === 'dark') {
+            colorScores.Black += 1;
+            colorScores.Purple += 0.5;
+            colorScores.Blue += 0.5;
+        } else {
+            colorScores.White += 1;
+            colorScores.Yellow += 0.5;
+            colorScores.Orange += 0.5;
+        }
+
+        // Sort colors by score and get top 5
+        const topColors = Object.entries(colorScores)
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 5)
+            .map(([color, score]) => ({
+                color,
+                weight: score
+            }));
+
+        return topColors;
+    };
+
     return (
-        <div className="App">
-            {!token && (
-                <a
-                    href={`${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join(
-                        "%20"
-                    )}&response_type=token&show_dialog=true`}
-                >
-                    Login to Spotify
-                </a>
-            )}
-            {token && (
-                <div>
-                    <h1>Spotify Player</h1>
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={handleSearchChange}
-                        placeholder="Search for a song"
+        <Router>
+            <div className="App">
+                <nav>
+                    <Link to="/">Home</Link> | <Link to="/blob">Blob</Link>
+                </nav>
+                <Routes>
+                    <Route path="/blob" element={<BlobPage />} />
+                    <Route 
+                        path="/" 
+                        element={
+                            !token ? (
+                                <a
+                                    href={`${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join(
+                                        "%20"
+                                    )}&response_type=token&show_dialog=true`}
+                                >
+                                    Login to Spotify
+                                </a>
+                            ) : (
+                                <SpotifyPlayer 
+                                    token={token}
+                                    searchQuery={searchQuery}
+                                    tracks={tracks}
+                                    isPlaying={isPlaying}
+                                    devices={devices}
+                                    selectedDevice={selectedDevice}
+                                    acousticBrainzData={acousticBrainzData}
+                                    handleSearchChange={handleSearchChange}
+                                    playTrack={playTrack}
+                                    togglePlayPause={togglePlayPause}
+                                    fetchDevices={fetchDevices}
+                                    transferPlayback={transferPlayback}
+                                />
+                            )
+                        } 
                     />
-                    <ul>
-                        {tracks.map(track => (
-                            <li key={track.id}>
-                                {track.name} by {track.artists.map(artist => artist.name).join(', ')}
-                                <button onClick={() => playTrack(track.uri, track)}>Play</button>
-                            </li>
-                        ))}
-                    </ul>
-                    <button onClick={togglePlayPause}>
-                        {isPlaying ? 'Pause' : 'Play'}
-                    </button>
-                    <div>
-                        <h2>Available Devices</h2>
-                        <button onClick={fetchDevices}>Refresh Devices</button>
-                        <ul>
-                            {devices.map(device => (
-                                <li key={device.id}>
-                                    {device.name} {device.id === selectedDevice && "(Current)"}
-                                    <button onClick={() => transferPlayback(device.id)}>Select</button>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                    {acousticBrainzData && (
-                        <div className="acoustic-brainz-data">
-                            <h2>AcousticBrainz Features</h2>
-                            <p><strong>Danceability:</strong> {acousticBrainzData.danceability}</p>
-                            <p><strong>Genre:</strong> {acousticBrainzData.genre}</p>
-                            <p><strong>Emotion:</strong> {acousticBrainzData.emotion}</p>
-                            <p><strong>BPM:</strong> {acousticBrainzData.bpm}</p>
-                        </div>
-                    )}
-                </div>
-            )}
-        </div>
+                </Routes>
+            </div>
+        </Router>
     );
 }
 
