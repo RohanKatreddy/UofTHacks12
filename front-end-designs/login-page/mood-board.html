@@ -6,7 +6,19 @@
     <title>Navigation Bar</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Homenaje">
-
+    <style>
+        .moodboard-title {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Homenaje', sans-serif;
+            font-size: 48px;
+            color: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
     <nav class="nav-bar">
@@ -20,22 +32,57 @@
         </div>
     </nav>
 
+    <div class="moodboard-title"></div>
+
+    <main>
+        <button onclick="window.location.href='https://open.spotify.com/track/1qEmFfgcLObUfQm0j1W2CK'" class="blob blob1" style="width: 320px; height: 320px; top: 5%; left: 5%; background: rgba(225, 95, 197, 0.7); border: none; cursor: pointer; border-radius: 60%; animation: pulse 2s infinite, float 3s ease-in-out infinite;"></button>
+        <button onclick="window.location.href='https://open.spotify.com/track/10xV5l9nhLvFpR8mqzs0bL'" class="blob blob2" style="width: 370px; height: 370px; top: 8%; right: 8%; background: rgba(88, 106, 112, 0.7); border: none; cursor: pointer; border-radius: 60%; animation: pulse 3s infinite, float 4s ease-in-out infinite;"></button>
+        <button onclick="window.location.href='https://open.spotify.com/track/6WHSNH8PhDHbpYxg4I181o'" class="blob blob3" style="width: 300px; height: 300px; top: 18%; left: 33%; background: rgba(253, 214, 22, 0.7); border: none; cursor: pointer; border-radius: 60%; animation: pulse 2.5s infinite, float 3.5s ease-in-out infinite;"></button>
+        <button onclick="window.location.href='https://open.spotify.com/track/0wHFktze2PHC5jDt3B17DC'" class="blob blob4" style="width: 340px; height: 340px; top: 33%; right: 28%; background: rgba(255, 205, 4, 0.7); border: none; cursor: pointer; border-radius: 60%; animation: pulse 2.8s infinite, float 3.8s ease-in-out infinite;"></button>
+        <button onclick="window.location.href='https://open.spotify.com/track/2mlNgAeIBnL78ZriXgrRHz'" class="blob blob5" style="width: 310px; height: 310px; top: 48%; left: 13%; background: rgba(200, 84, 239, 0.7); border: none; cursor: pointer; border-radius: 60%; animation: pulse 2.2s infinite, float 3.2s ease-in-out infinite;"></button>
+        <button onclick="window.location.href='https://open.spotify.com/track/4h9wh7iOZ0GGn8QVp4RAOB'" class="blob blob6" style="width: 350px; height: 350px; top: 53%; right: 18%; background: rgba(0, 255, 247, 0.7); border: none; cursor: pointer; border-radius: 60%; animation: pulse 2.7s infinite, float 3.7s ease-in-out infinite;"></button>
+        <button onclick="window.location.href='https://open.spotify.com/track/5pyoxDZ1PX0KxBxiRVxA4U'" class="blob blob7" style="width: 330px; height: 330px; bottom: 28%; left: 23%; background: rgba(251, 67, 70, 0.7); border: none; cursor: pointer; border-radius: 60%; animation: pulse 2.4s infinite, float 3.4s ease-in-out infinite;"></button>
+        <button onclick="window.location.href='https://open.spotify.com/track/4Dvkj6JhhA12EX05fT7y2e'" class="blob blob13" style="width: 290px; height: 290px; top: 28%; left: 18%; background: rgba(125, 199, 255, 0.7); border: none; cursor: pointer; border-radius: 60%; animation: pulse 2.6s infinite, float 3.6s ease-in-out infinite;"></button>
+        <button onclick="window.location.href='https://open.spotify.com/track/6HMtHNpW6YPi1hrw9tgF8P/'" class="blob blob14" style="width: 325px; height: 325px; bottom: 18%; left: 8%; background: rgba(239, 165, 81, 0.7); border: none; cursor: pointer; border-radius: 60%; animation: pulse 2.3s infinite, float 3.3s ease-in-out infinite;"></button>
+    </main>
+
     <script>
-        const moodBoardBtn = document.querySelector('.mood-board');
-        const feedBtn = document.querySelector('.feed');
+        document.addEventListener('DOMContentLoaded', function() {
+            const moodBoardBtn = document.querySelector('.mood-board');
+            const feedBtn = document.querySelector('.feed');
+            const userEmail = localStorage.getItem('userEmail') || 'user';
+            const username = userEmail.split('@')[0];
+            document.querySelector('.moodboard-title').textContent = "UofTHacks 12's Moodboard";
 
-        feedBtn.addEventListener('click', () => {
-            feedBtn.classList.add('active');
-            moodBoardBtn.classList.remove('active');
-            setTimeout(() => {
-                window.location.href = 'feed.html';
-            }, 300); // Wait for transition to complete
+            feedBtn.addEventListener('click', () => {
+                feedBtn.classList.add('active');
+                moodBoardBtn.classList.remove('active');
+                setTimeout(() => {
+                    window.location.href = 'feed.html';
+                }, 300);
+            });
+
+            moodBoardBtn.addEventListener('click', () => {
+                moodBoardBtn.classList.add('active');
+                feedBtn.classList.remove('active');
+            });
         });
 
-        moodBoardBtn.addEventListener('click', () => {
-            moodBoardBtn.classList.add('active');
-            feedBtn.classList.remove('active');
-        });
+        // Add these keyframe animations to your CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+            @keyframes float {
+                0% { transform: translate(0, 0); }
+                50% { transform: translate(5px, 5px); }
+                100% { transform: translate(0, 0); }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>

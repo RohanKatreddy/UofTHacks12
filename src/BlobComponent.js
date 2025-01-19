@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { io } from 'socket.io-client';
 
 class Blob {
     constructor(options = {}) {
@@ -56,6 +57,25 @@ class Blob {
         this.colorOffsets = this.colorOffsets.map(offset => 
             (offset + (0.02 * this.fluidity)) % (Math.PI * 2)
         );
+
+        // Define maximum and minimum radius with greater contrast
+        const maxRadius = 150; // Increased maximum size
+        const minRadius = 10; // Decreased minimum size
+
+        // Add rhythmic pulsing effect to the radius
+        const baseRadius = (maxRadius + minRadius) / 2;
+        const amplitude = (maxRadius - minRadius) / 2;
+        const frequency = 0.5; // Adjust frequency for rhythm variation
+        const pulseEffect = Math.sin(this.time * frequency) * amplitude;
+        this.radius = baseRadius + pulseEffect;
+
+        // Map radius to a value between 0 and 100
+        const mappedSize = Math.min(Math.max((this.radius - minRadius) / (maxRadius - minRadius) * 100, 0), 100);
+
+        // Send mapped size to Python script
+        socket.emit('sizeData', mappedSize);
+
+        console.log('Sending size data:', mappedSize);
     }
 
     draw(ctx) {
@@ -186,6 +206,9 @@ export const colorPresets = {
     rainbow: '#FF1744'   // Ecstasy, joy, overwhelming beauty
 };
 
+// Initialize WebSocket connection
+const socket = io('http://localhost:5000');
+
 const BlobComponent = ({ 
     width = 400, 
     height = 400, 
@@ -196,6 +219,7 @@ const BlobComponent = ({
     const canvasRef = useRef(null);
     const blobRef = useRef(null);
     const animationFrameRef = useRef(null);
+    const [pulseValue, setPulseValue] = useState(0);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -221,6 +245,16 @@ const BlobComponent = ({
             ctx.clearRect(0, 0, width, height);
             blobRef.current.update();
             blobRef.current.draw(ctx);
+
+            // Map pulse strength to 0-100
+            const mappedPulse = Math.min(Math.max((blobRef.current.pulseStrength / 20) * 100, 0), 100);
+            setPulseValue(mappedPulse);
+
+            // Send pulse value to Python script
+            socket.emit('pulseData', mappedPulse);
+
+            console.log('Sending pulse data:', mappedPulse);
+
             animationFrameRef.current = requestAnimationFrame(animate);
         };
 

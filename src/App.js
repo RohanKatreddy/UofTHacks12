@@ -134,6 +134,12 @@ const randomizeBlob = () => {
     };
 };
 
+function calculateLuminance(color) {
+    const rgb = color.match(/\w\w/g).map(x => parseInt(x, 16) / 255);
+    const [r, g, b] = rgb.map(c => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
 function App() {
     const [token, setToken] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -144,9 +150,64 @@ function App() {
     const [selectedDevice, setSelectedDevice] = useState(null);
     const [acousticBrainzData, setAcousticBrainzData] = useState(null);
     const [blobProps, setBlobProps] = useState(randomizeBlob());
+    const navigate = useNavigate();
+    const [isBlobPage, setIsBlobPage] = useState(false);
+
+    // Reintroduce audio context and analyser
     const audioContextRef = useRef(null);
     const analyserRef = useRef(null);
-    const navigate = useNavigate();
+
+    const startAnalyzingAudio = () => {
+        if (!audioContextRef.current) {
+            audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+            console.log('AudioContext initialized:', audioContextRef.current);
+            analyserRef.current = audioContextRef.current.createAnalyser();
+            analyserRef.current.fftSize = 256;
+            console.log('AnalyserNode setup:', analyserRef.current);
+        }
+
+        const audioElement = document.querySelector('audio'); // Assuming the audio element is available in the DOM
+        if (!audioElement) {
+            console.error('Audio element not available');
+            return;
+        }
+        console.log('Audio element:', audioElement);
+
+        const source = audioContextRef.current.createMediaElementSource(audioElement);
+        source.connect(analyserRef.current);
+        analyserRef.current.connect(audioContextRef.current.destination);
+
+        const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+
+        const analyze = () => {
+            analyserRef.current.getByteFrequencyData(dataArray);
+            const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+            console.log('Average Volume:', average);
+
+            // Simple beat detection
+            if (average > 128) { // Adjust this threshold as needed
+                console.log('Beat detected!');
+                setBlobProps(prevProps => ({
+                    ...prevProps,
+                    blobConfig: {
+                        ...prevProps.blobConfig,
+                        pulseStrength: Math.random() * 20 + 20
+                    }
+                }));
+            }
+
+            requestAnimationFrame(analyze);
+        };
+
+        analyze(); // Start the analysis loop
+    };
+
+    const stopAnalyzingAudio = () => {
+        if (audioContextRef.current) {
+            audioContextRef.current.close();
+            audioContextRef.current = null;
+        }
+    };
 
     useEffect(() => {
         let _token = hash.access_token;
@@ -199,54 +260,15 @@ function App() {
         };
     }, [token]);
 
-    const startAnalyzingAudio = () => {
-        if (!player || !player._options || typeof player._options.getAudioElement !== 'function') {
-            console.error('Player or audio element not ready');
-            return;
-        }
-
-        if (!audioContextRef.current) {
-            audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-            analyserRef.current = audioContextRef.current.createAnalyser();
-            analyserRef.current.fftSize = 256;
-        }
-
-        const audioElement = player._options.getAudioElement();
-        if (!audioElement) {
-            console.error('Audio element not available');
-            return;
-        }
-
-        const source = audioContextRef.current.createMediaElementSource(audioElement);
-        source.connect(analyserRef.current);
-        analyserRef.current.connect(audioContextRef.current.destination);
-
-        const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
-
-        const analyze = () => {
-            analyserRef.current.getByteFrequencyData(dataArray);
-            const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-            if (average > 128) { // Simple beat detection threshold
-                setBlobProps(prevProps => ({
-                    ...prevProps,
-                    blobConfig: {
-                        ...prevProps.blobConfig,
-                        pulseStrength: Math.random() * 20 + 20
-                    }
-                }));
-            }
-            requestAnimationFrame(analyze);
-        };
-
-        analyze();
-    };
-
-    const stopAnalyzingAudio = () => {
-        if (audioContextRef.current) {
-            audioContextRef.current.close();
-            audioContextRef.current = null;
-        }
-    };
+    useEffect(() => {
+        const backgroundColor = getComputedStyle(document.body).backgroundColor;
+        const hexColor = backgroundColor.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/).slice(1).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
+        const luminance = calculateLuminance(hexColor);
+        const textColor = luminance > 0.5 ? '#000000' : '#ffffff';
+        document.querySelectorAll('.login-button, .mode-button').forEach(button => {
+            button.style.color = textColor;
+        });
+    }, []);
 
     const searchTracks = async (query) => {
         if (!query) return;
@@ -513,46 +535,50 @@ function App() {
         return topColors;
     };
 
+    const togglePage = () => {
+        setIsBlobPage(!isBlobPage);
+        navigate(isBlobPage ? '/' : '/blob');
+    };
+
     return (
         <div className="App">
-            <nav>
-                <button onClick={() => navigate('/')}>Home</button>
-                <button onClick={() => navigate('/blob')}>Blob</button>
-                {!token && (
-                    <button
-                        className="login-button"
-                        onClick={() => window.location.href = `${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join("%20")}&response_type=token&show_dialog=true`}
-                    >
-                        Login to Spotify
-                    </button>
+            <img src="/logo-removebg-preview.png" alt="Logo" className="logo" />
+            <button className="login-button" style={{ position: 'absolute', top: '10px', right: '10px' }}
+                onClick={() => window.location.href = `${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join("%20")}&response_type=token&show_dialog=true`}>
+                Login
+            </button>
+            <button className="mode-button" style={{ position: 'absolute', top: '10px', left: '50%', transform: 'translateX(-50%)' }}
+                onClick={togglePage}>
+                {isBlobPage ? 'Home' : 'Blob'}
+            </button>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100vh - 50px)' }}>
+                {isBlobPage ? (
+                    <BlobComponent 
+                        shape={blobProps.shape}
+                        colorPreset={blobProps.colorPreset}
+                        blobConfig={blobProps.blobConfig}
+                    />
+                ) : (
+                    token ? (
+                        <SpotifyPlayer 
+                            token={token}
+                            searchQuery={searchQuery}
+                            tracks={tracks}
+                            isPlaying={isPlaying}
+                            devices={devices}
+                            selectedDevice={selectedDevice}
+                            acousticBrainzData={acousticBrainzData}
+                            handleSearchChange={handleSearchChange}
+                            playTrack={playTrack}
+                            togglePlayPause={togglePlayPause}
+                            fetchDevices={fetchDevices}
+                            transferPlayback={transferPlayback}
+                        />
+                    ) : (
+                        <div>Please log in to access the Spotify Player.</div>
+                    )
                 )}
-            </nav>
-            <Routes>
-                <Route path="/blob" element={<BlobPage blobProps={blobProps} />} />
-                <Route 
-                    path="/" 
-                    element={
-                        token ? (
-                            <SpotifyPlayer 
-                                token={token}
-                                searchQuery={searchQuery}
-                                tracks={tracks}
-                                isPlaying={isPlaying}
-                                devices={devices}
-                                selectedDevice={selectedDevice}
-                                acousticBrainzData={acousticBrainzData}
-                                handleSearchChange={handleSearchChange}
-                                playTrack={playTrack}
-                                togglePlayPause={togglePlayPause}
-                                fetchDevices={fetchDevices}
-                                transferPlayback={transferPlayback}
-                            />
-                        ) : (
-                            <div>Please log in to access the Spotify Player.</div>
-                        )
-                    } 
-                />
-            </Routes>
+            </div>
         </div>
     );
 }
