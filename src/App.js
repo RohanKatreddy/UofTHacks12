@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { colorPresets } from './BlobComponent';
 import { authEndpoint, clientId, redirectUri, scopes } from './config';
 import axios from 'axios';
 import './App.css';
@@ -29,12 +30,13 @@ const debounce = (func, wait) => {
 function BlobPage() {
     const randomizeBlob = () => {
         const shapes = ['round', 'oval', 'wavy', 'squish', 'star', 'flower', 'bubble', 'cloud', 'droplet'];
-        const presets = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'white', 'gray', 'black', 'pink', 'turquoise', 'gold', 'rainbow'];
+        const presetColors = Object.values(colorPresets);
+        const randomColors = Array(3).fill(0).map(() => presetColors[Math.floor(Math.random() * presetColors.length)]);
         
         return {
             shape: shapes[Math.floor(Math.random() * shapes.length)],
-            colorPreset: presets[Math.floor(Math.random() * presets.length)],
             blobConfig: {
+                colors: randomColors,
                 noiseStrength: Math.random() * 20,
                 edgeNoiseStrength: Math.random() * 10,
                 pulseSpeed: Math.random() * 0.05,
