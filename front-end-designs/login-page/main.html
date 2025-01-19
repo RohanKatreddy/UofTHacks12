@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
+    <title>Landing Page</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Homenaje">
 </head>
-<body>
+<body class="landing-page">
     <div class="login-button">
         <button type="button">Log In</button>
     </div>
-    <script src="script.js"></script>
 </body>
 </html>
 
-
+<script>
+    document.querySelector('.login-button button').addEventListener('click', function() {
+        window.location.href = 'log-in.html';
+    });
+</script>
