@@ -77,3 +77,89 @@
 .login-form button:hover {
     background: linear-gradient(to right, #78b5f7, #f4c0d8);
 }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.nav-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo img {
+  height: 50px;
+  margin-left: 20px;
+}
+
+.toggle-container {
+  display: flex;
+  border: 2px solid #f4c0d8;
+  border-radius: 25px;
+  overflow: hidden;
+  margin-right: 20px;
+  position: relative;
+}
+
+.toggle-btn {
+  padding: 10px 20px;
+  font-family: 'Homenaje', sans-serif;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+  text-align: center;
+}
+
+.mood-board {
+  background-color: #f4c0d8;
+  color: black;
+  border-radius: 25px 0 0 25px;
+}
+
+.feed {
+  background-color: transparent;
+  color: black;
+  border-radius: 0 25px 25px 0;
+}
+
+.toggle-btn:hover {
+  opacity: 0.8;
+}
+.toggle-container {
+  position: relative;
+}
+.slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 50%;
+  background-color: #f4c0d8;
+  border-radius: 25px;
+  transition: transform 0.3s ease;
+}
+.feed.active ~ .slider {
+  transform: translateX(100%);
+}
+.toggle-btn {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}

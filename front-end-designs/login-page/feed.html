@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation Bar</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Homenaje">
+
+</head>
+<body>
+    <nav class="nav-bar">
+        <div class="logo">
+            <img src="logo-removebg-preview.png" alt="InSync Logo">
+        </div>
+        <div class="toggle-container">
+            <button class="toggle-btn mood-board">My mood board</button>
+            <button class="toggle-btn feed active">Feed</button>
+            <div class="slider"></div>
+        </div>
+    </nav>
+
+    <script>
+        const moodBoardBtn = document.querySelector('.mood-board');
+        const feedBtn = document.querySelector('.feed');
+
+        moodBoardBtn.addEventListener('click', () => {
+            moodBoardBtn.classList.add('active');
+            feedBtn.classList.remove('active');
+            setTimeout(() => {
+                window.location.href = 'mood-board.html';
+            }, 300); // Wait for transition to complete
+        });
+
+        feedBtn.addEventListener('click', () => {
+            feedBtn.classList.add('active');
+            moodBoardBtn.classList.remove('active');
+        });
+    </script>
+</body>
+</html>
