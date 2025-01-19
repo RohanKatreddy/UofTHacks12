@@ -22,6 +22,114 @@
   justify-content: center;
   align-items: center;
 }
+.blob {
+  position: absolute;
+  filter: blur(100px);
+  animation: float 6s infinite ease-in-out;
+  opacity: 0.8;
+}
+
+.blob1 {
+  width: 660px;
+  height: 660px;
+  background: #ff9ecd;
+  left: 10%;
+  top: 20%;
+  animation-name: float1;
+}
+
+.blob2 {
+  width: 610px;
+  height: 610px;
+  background: #5da8ff;
+  right: 15%;
+  bottom: 20%;
+  animation-name: float2;
+}
+
+.blob3 {
+  width: 760px;
+  height: 760px;
+  background: #b094ff;
+  left: 40%;
+  top: 30%;
+  animation-name: float3;
+}
+
+.blob4 {
+  width: 710px;
+  height: 710px;
+  background: #ff8fb6;
+  right: 30%;
+  bottom: 30%;
+  animation-name: float4;
+}
+
+.blob5 {
+  width: 810px;
+  height: 810px;
+  background: #7bc7ff;
+  left: 30%;
+  bottom: 20%;
+  animation-name: float5;
+}
+
+.blob6 {
+  width: 560px;
+  height: 560px;
+  background: #e094ff;
+  right: 25%;
+  top: 15%;
+  animation-name: float6;
+}
+
+@keyframes float1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(200px, 100px) scale(1.1); }
+  50% { transform: translate(100px, 250px) scale(0.9); }
+  75% { transform: translate(-150px, 150px) scale(1.2); }
+}
+
+@keyframes float2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(-250px, -150px) scale(0.8); }
+  50% { transform: translate(-150px, -200px) scale(1.1); }
+  75% { transform: translate(150px, -100px) scale(0.9); }
+}
+
+@keyframes float3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(150px, -200px) scale(1.2); }
+  50% { transform: translate(250px, 100px) scale(0.8); }
+  75% { transform: translate(-100px, -150px) scale(1.1); }
+}
+
+@keyframes float4 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(-200px, 150px) scale(0.9); }
+  50% { transform: translate(100px, -250px) scale(1.2); }
+  75% { transform: translate(250px, -100px) scale(0.8); }
+}
+
+@keyframes float5 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(250px, 250px) scale(1.1); }
+  50% { transform: translate(-200px, 150px) scale(0.9); }
+  75% { transform: translate(-150px, -200px) scale(1.2); }
+}
+
+@keyframes float6 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(-150px, -250px) scale(1.2); }
+  50% { transform: translate(250px, -150px) scale(0.8); }
+  75% { transform: translate(200px, 200px) scale(1.1); }
+}
+
+.landing-page {
+  background: white;
+  overflow: hidden;
+  position: relative;
+}
 .login-button {
     transform: translateY(150px);
 }
@@ -38,7 +146,21 @@
     box-shadow: none;
 }
 .login-button button:hover {
-    background: linear-gradient(to right, #78b5f7, #f4c0d8);
+    background: linear-gradient(-45deg, #78b5f7, #a8d1fa, #7bc7ff, #5da8ff);
+    background-size: 400% 400%;
+    animation: gradient 3s ease infinite;
+    box-shadow: 0 0 20px rgba(120, 181, 247, 0.5);
+}
+@keyframes gradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
 }
 .login-button button:active {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
@@ -75,7 +197,10 @@
     transition: all 0.3s ease;
 }
 .login-form button:hover {
-    background: linear-gradient(to right, #78b5f7, #f4c0d8);
+    background: linear-gradient(-45deg, #78b5f7, #a8d1fa, #7bc7ff, #5da8ff);
+    background-size: 400% 400%;
+    animation: gradient 3s ease infinite;
+    box-shadow: 0 0 20px rgba(120, 181, 247, 0.5);
 }
 * {
   margin: 0;
