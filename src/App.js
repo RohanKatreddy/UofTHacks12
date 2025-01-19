@@ -3,7 +3,7 @@ import { colorPresets } from './BlobComponent';
 import { authEndpoint, clientId, redirectUri, scopes } from './config';
 import axios from 'axios';
 import './App.css';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import BlobComponent from './BlobComponent';
 
 const hash = window.location.hash
@@ -209,6 +209,7 @@ function App() {
     const [devices, setDevices] = useState([]);
     const [selectedDevice, setSelectedDevice] = useState(null);
     const [acousticBrainzData, setAcousticBrainzData] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         let _token = hash.access_token;
@@ -522,45 +523,46 @@ function App() {
     };
 
     return (
-        <Router>
-            <div className="App">
-                <nav>
-                    <Link to="/">Home</Link> | <Link to="/blob">Blob</Link>
-                </nav>
-                <Routes>
-                    <Route path="/blob" element={<BlobPage />} />
-                    <Route 
-                        path="/" 
-                        element={
-                            !token ? (
-                                <a
-                                    href={`${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join(
-                                        "%20"
-                                    )}&response_type=token&show_dialog=true`}
-                                >
-                                    Login to Spotify
-                                </a>
-                            ) : (
-                                <SpotifyPlayer 
-                                    token={token}
-                                    searchQuery={searchQuery}
-                                    tracks={tracks}
-                                    isPlaying={isPlaying}
-                                    devices={devices}
-                                    selectedDevice={selectedDevice}
-                                    acousticBrainzData={acousticBrainzData}
-                                    handleSearchChange={handleSearchChange}
-                                    playTrack={playTrack}
-                                    togglePlayPause={togglePlayPause}
-                                    fetchDevices={fetchDevices}
-                                    transferPlayback={transferPlayback}
-                                />
-                            )
-                        } 
-                    />
-                </Routes>
-            </div>
-        </Router>
+        <div className="App">
+            <nav>
+                <button onClick={() => navigate('/')}>Home</button>
+                <button onClick={() => navigate('/blob')}>Blob</button>
+                {!token && (
+                    <button
+                        className="login-button"
+                        onClick={() => window.location.href = `${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join("%20")}&response_type=token&show_dialog=true`}
+                    >
+                        Login to Spotify
+                    </button>
+                )}
+            </nav>
+            <Routes>
+                <Route path="/blob" element={<BlobPage />} />
+                <Route 
+                    path="/" 
+                    element={
+                        token ? (
+                            <SpotifyPlayer 
+                                token={token}
+                                searchQuery={searchQuery}
+                                tracks={tracks}
+                                isPlaying={isPlaying}
+                                devices={devices}
+                                selectedDevice={selectedDevice}
+                                acousticBrainzData={acousticBrainzData}
+                                handleSearchChange={handleSearchChange}
+                                playTrack={playTrack}
+                                togglePlayPause={togglePlayPause}
+                                fetchDevices={fetchDevices}
+                                transferPlayback={transferPlayback}
+                            />
+                        ) : (
+                            <div>Please log in to access the Spotify Player.</div>
+                        )
+                    } 
+                />
+            </Routes>
+        </div>
     );
 }
 
