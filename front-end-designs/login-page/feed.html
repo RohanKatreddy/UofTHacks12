@@ -6,7 +6,76 @@
     <title>Navigation Bar</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Homenaje">
+    <style>
+        .blob-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 20px;
+            padding: 50px;
+        }
 
+        .mood-blob {
+            position: relative;
+            border-radius: 50%;
+            filter: blur(10px);
+            opacity: 0.8;
+            box-shadow: 0 0 20px rgba(255, 57, 152, 0.3);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            width: 250px;
+            height: 250px;
+            margin: auto;
+            z-index: 1;
+            animation: pulse var(--pulse-duration) ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .mood-blob:hover {
+            transform: scale(1.1);
+            animation: none;
+        }
+
+        .nav-bar {
+            position: relative;
+            z-index: 2;
+        }
+
+        .friend-name {
+            text-align: center;
+            margin-top: 10px;
+            color: #000;
+            font-family: 'Homenaje', sans-serif;
+            font-size: 1.2em;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+            position: relative;
+            z-index: 2;
+        }
+
+        .blob-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    </style>
 </head>
 <body>
     <nav class="nav-bar">
@@ -19,6 +88,33 @@
             <div class="slider"></div>
         </div>
     </nav>
+
+    <div class="blob-container">
+        <div class="blob-wrapper">
+            <div class="mood-blob" style="background: linear-gradient(180deg, #ff3998, #ff8139); --pulse-duration: 3.2s;" data-spotify-uri="spotify:track:4cOdK2wGLETKBW3PvgPWqT"></div>
+            <div class="friend-name">Sarah</div>
+        </div>
+        <div class="blob-wrapper">
+            <div class="mood-blob" style="background: linear-gradient(180deg, #39ff83, #39c6ff); --pulse-duration: 4.1s;" data-spotify-uri="spotify:track:0V3wPSX9ygBnCm8psDIegu"></div>
+            <div class="friend-name">Michael</div>
+        </div>
+        <div class="blob-wrapper">
+            <div class="mood-blob" style="background: linear-gradient(180deg, #ff39d1, #7839ff); --pulse-duration: 3.7s;" data-spotify-uri="spotify:track:7qiZfU4dY1lWllzX7mPBI3"></div>
+            <div class="friend-name">Emma</div>
+        </div>
+        <div class="blob-wrapper">
+            <div class="mood-blob" style="background: linear-gradient(180deg, #ffcf39, #ff3939); --pulse-duration: 4.5s;" data-spotify-uri="spotify:track:3DarAbFujv6eYNliUTyqtz"></div>
+            <div class="friend-name">David</div>
+        </div>
+        <div class="blob-wrapper">
+            <div class="mood-blob" style="background: linear-gradient(180deg, #39ffed, #3954ff); --pulse-duration: 3.9s;" data-spotify-uri="spotify:track:7KXjTSCq5nL1LoYtL7XAwS"></div>
+            <div class="friend-name">Sophie</div>
+        </div>
+        <div class="blob-wrapper">
+            <div class="mood-blob" style="background: linear-gradient(180deg, #a239ff, #ff39a2); --pulse-duration: 4.3s;" data-spotify-uri="spotify:track:0e7ipj03S05BNilyu5bRzt"></div>
+            <div class="friend-name">Alex</div>
+        </div>
+    </div>
 
     <script>
         const moodBoardBtn = document.querySelector('.mood-board');
@@ -35,6 +131,14 @@
         feedBtn.addEventListener('click', () => {
             feedBtn.classList.add('active');
             moodBoardBtn.classList.remove('active');
+        });
+
+        // Add click handlers for blobs
+        document.querySelectorAll('.mood-blob').forEach(blob => {
+            blob.addEventListener('click', () => {
+                const spotifyUri = blob.dataset.spotifyUri;
+                window.open(`https://open.spotify.com/track/${spotifyUri.split(':')[2]}`, '_blank');
+            });
         });
     </script>
 </body>
